@@ -1,4 +1,6 @@
 import os
+import traceback
+
 from flask import Flask, jsonify, request, make_response, abort
 import pickle
 from mob_group import MobGroup
@@ -36,13 +38,16 @@ def group_next(group):
 
 @app.route('/<group>', methods=['POST'])
 def post_data(group):
-    if group not in groups:
-        groups[group] = MobGroup()
-    mob = groups[group]
-    data = request.get_json()
-    mob.set_roles_members(data.get('roles', []), data.get('members', []))
-    save()
-    return jsonify({'members': mob.members, 'roles': mob.roles})
+    try:
+        if group not in groups:
+            groups[group] = MobGroup()
+        mob = groups[group]
+        data = request.get_json()
+        mob.set_roles_members(data.get('roles', []), data.get('members', []))
+        save()
+        return jsonify({'members': mob.members, 'roles': mob.roles})
+    except Exception as ex:
+        return jsonify({'error': str(ex), 'trace': traceback.format_exception(ex)})
 
 
 def save():
