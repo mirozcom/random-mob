@@ -1,15 +1,19 @@
+import logging
 import os
 import traceback
 import pickle
-from flask import Flask, jsonify, request, make_response, abort
+from flask import Blueprint, abort, make_response, jsonify, request
 from mob_group import MobGroup
 
 storage_dir = os.environ.get('HOME_SITE', '.') + "/App_Data/mob_data"
 storage_file = "saved_state.pkl"
 storage_path = f"{storage_dir}/{storage_file}"
 
-app = Flask(__name__)
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 groups: dict[str, MobGroup] = dict()
+
+app = Blueprint('mob', __name__)
 
 
 @app.route('/mob/<group>')
@@ -56,14 +60,20 @@ def save():
 
 def load():
     global groups
+    log.info(f"Loading started - groups: {';'.join(groups.keys())}")
     if not os.path.isdir(storage_dir):
+        log.info(f"Creating {storage_dir}")
         os.makedirs(storage_dir)
+    else:
+        log.info(f"{storage_dir} exist")
     if os.path.isfile(storage_path):
+        log.info(f"{storage_path} exist")
         with open(storage_path, 'rb') as file:
             groups = pickle.load(file)
+    else:
+        log.info(f"{storage_path} doesn't exist")
+    log.info(f"Loading complete - groups: {';'.join(groups.keys())}")
 
 
-if __name__ == '__main__':
-    load()
-    app.debug = True
-    app.run()
+
+
