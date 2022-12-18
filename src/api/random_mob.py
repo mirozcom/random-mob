@@ -1,11 +1,10 @@
 import os
 import traceback
-
-from flask import Flask, jsonify, request, make_response, abort
 import pickle
+from flask import Flask, jsonify, request, make_response, abort
 from mob_group import MobGroup
 
-storage_dir = "App_Data/mob_data"
+storage_dir = os.environ.get('HOME_SITE', '.') + "/App_Data/mob_data"
 storage_file = "saved_state.pkl"
 storage_path = f"{storage_dir}/{storage_file}"
 
@@ -13,7 +12,7 @@ app = Flask(__name__)
 groups: dict[str, MobGroup] = dict()
 
 
-@app.route('/<group>')
+@app.route('/mob/<group>')
 def group_details(group):
     if group not in groups:
         abort(make_response(jsonify("Group doesn't exist"), 404))
@@ -25,7 +24,7 @@ def group_details(group):
     })
 
 
-@app.route('/<group>/next')
+@app.route('/mob/<group>/next')
 def group_next(group):
     if group not in groups:
         abort(make_response(jsonify("Group doesn't exist"), 404))
@@ -36,7 +35,7 @@ def group_next(group):
     return jsonify(ret)
 
 
-@app.route('/<group>', methods=['POST'])
+@app.route('/mob/<group>', methods=['POST'])
 def post_data(group):
     try:
         if group not in groups:
