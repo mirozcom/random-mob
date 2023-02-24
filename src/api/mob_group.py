@@ -68,11 +68,21 @@ def pick_next(members, roles, total_roles, per_role, total_sets, last_appearance
     last_set_appearance = reduct_values_dict(last_set_appearance)
     prefix_key = ""
     for role in roles:
-        member = random.choices(all_members, [
-            ((last_appearance[m] + 1) ** 10) * ((last_appearance_in_role[role][m] + 1) ** 10) * (
-                        (last_set_appearance.get(f"{prefix_key}:{m}", 0) + 1) ** 10) / (
-                        ((total_roles[m] + 1) ** 10) * ((per_role[role][m] + 1) ** 10) * (
-                            total_sets.get(f"{prefix_key}:{m}", 0) + 1) ** 10) for m in all_members], k=1)[0]
+        weights = [
+            (
+                    ((last_appearance[m] + 1) ** 0)  # set to 0 to ignore last appearance for now
+                    * ((last_appearance_in_role[role][m] + 1) ** 0)  # set to 0 to ignore last appearance for now
+                    * ((last_set_appearance.get(f"{prefix_key}:{m}", 0) + 1) ** 0)  # set to 0 to ignore last appearance for now
+            )
+            /
+            (
+                    ((total_roles[m] + 1) ** 10)
+                    * ((per_role[role][m] + 1) ** 10)
+                    * ((total_sets.get(f"{prefix_key}:{m}", 0) + 1) ** 10)
+            )
+            for m in all_members
+        ]
+        member = random.choices(all_members, weights, k=1)[0]
         all_members.remove(member)
         roles_members.append((role, member))
         prefix_key = ":".join(m[1] for m in roles_members)
